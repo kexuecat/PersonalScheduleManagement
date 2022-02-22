@@ -1,0 +1,32 @@
+#开发环境配置
+server:
+  #端口
+  port: 8880
+  tomcat:
+    uri-encoding: utf-8
+#日志配置
+logging:
+  level:
+    cn.ghy.ps.project.mapper: debug
+#数据源
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/oamaster?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+    username: root
+    password: cptbtptp
+    type: com.alibaba.druid.pool.DruidDataSource
+    driver-class-name: com.mysql.jdbc.Driver
+  #activiti
+  #自动部署验证
+  activiti:
+    check-process-definitions: false
+
+
+# MyBatis
+mybatis:
+  mapper-locations: classpath:mapper/**/*.xml
+  type-aliases-package: cn.ghy.ps.project.po
+  configuration:
+    map-underscore-to-camel-case: true
+
+

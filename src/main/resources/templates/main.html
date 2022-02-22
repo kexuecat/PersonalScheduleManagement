@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--360浏览器优先以webkit内核解析-->
+    <title></title>
+    <link rel="shortcut icon" href="favicon.ico">
+    <link href="../static/css/bootstrap.min.css" th:href="@{/css/bootstrap.min.css}" rel="stylesheet"/>
+    <link href="../static/css/font-awesome.min.css" th:href="@{/css/font-awesome.css}" rel="stylesheet"/>
+    <link href="../static/css/main/animate.min.css" th:href="@{/css/main/animate.min.css}" rel="stylesheet"/>
+    <link href="../static/css/main/style.min862f.css" th:href="@{/css/main/style.min862f.css}" rel="stylesheet"/>
+    <style>
+        ul li .iboxBlock {
+            float: right;
+        }
+
+        ul li .iboxBlock span {
+            margin-right: 10px;
+        }
+
+        ul li {
+            line-height: 2em;
+        }
+
+        .ibox-content {
+            width: 100%;
+            height: 500px;
+        }
+
+        #calendar .layui-laydate-main {
+            width: 100%;
+            height: 500px;
+        }
+
+        #calendar {
+            margin: 0 auto;
+        }
+
+        #calendar .layui-laydate-content td, #test-n1 .layui-laydate-content th {
+            width: 200px;
+        }
+
+        .calendar {
+            background-color: white;
+            height: 500px;
+        }
+
+        .Note_Main {
+            background-color: rgb(253, 244, 206);
+            width: 100%;
+            height: 100%;
+            -webkit-box-shadow: #666 0px 0px 10px;
+            -moz-box-shadow: #666 0px 0px 10px;
+            box-shadow: #666 0px 0px 10px;
+
+        }
+
+        .Note_Main .Note_title {
+            text-align: center;
+            padding-top: 5px;
+            border-bottom: 1px solid #ebebeb;
+        }
+
+        .Note_Main .Note_content {
+            padding: 15px;
+            text-indent: 25px;
+            color: black;
+            font-size: inherit;
+            line-height: 2em;
+            border-bottom: 1px solid #ebebeb;
+        }
+
+        .Note_Main .Note_footer {
+            padding-top: 10px;
+            padding-right: 30px;
+            text-align: right;
+        }
+
+        /*时间显示*/
+        #currentDate {
+            font-size: 18px;
+            color: white;
+        }
+
+        .lock {
+            text-align: center;
+        }
+
+        .lock img {
+            width: 100px;
+        }
+
+        .lock img:hover {
+            -webkit-box-shadow: #666 0px 0px 2px;
+            -moz-box-shadow: #666 0px 0px 2px;
+            box-shadow: #666 0px 0px 2px;
+            cursor: pointer;
+        }
+
+        .WorkTime {
+            color: white;
+            font-size: 14px;
+        }
+
+        .Attendtips {
+            color: white;
+            font-size: 18px;
+            margin-top: 20px;
+        }
+    </style>
+
+</head>
+
+<body class="gray-bg">
+<!--<div class="row  border-bottom white-bg dashboard-header">-->
+
+<!--</div>-->
+<div class="wrapper wrapper-content">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>日程</h5>
+                </div>
+                <div class="calendar">
+                    <div id="calendar"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div th:include="include :: footer"></div>
+<script>
+
+    //实时时间
+    window.onload = function () {
+        setInterval(function () {
+            var date = new Date();
+            var year = date.getFullYear(); //获取当前年份
+            var mon = date.getMonth() + 1; //获取当前月份
+            var da = date.getDate(); //获取当前日
+            var day = date.getDay(); //获取当前星期几
+            var h = date.getHours(); //获取小时
+            var m = date.getMinutes(); //获取分钟
+            var s = date.getSeconds(); //获取秒
+            var d = document.getElementById('currentDate');
+            d.innerHTML = year + '年' + mon + '月' + da + '日' + '星期 ' + day + '<br>' + h + ':' + m + ':' + s;
+        }, 1000);
+        setInterval(notifyMe(), 600000);
+    }
+
+    function notifyMe() {
+        // 先检查浏览器是否支持
+        if (!("Notification" in window)) {
+            alert("浏览器暂时不支持消息提醒功能！");
+        }
+
+        // 检查用户是否同意接受通知
+        else if (Notification.permission === "granted") {
+            // If it's okay let's create a notification
+            let notification = new Notification('尚未完成的日程提醒',{
+                icon: 'https://img0.baidu.com/it/u=2838217922,3788923462&fm=26&fmt=auto',
+            });
+            notification.onclick = function() {
+                window.location='http://localhost:8880/schedule/tolist';
+            }
+        }
+
+        // 否则我们需要向用户获取权限
+        else if (Notification.permission !== 'denied') {
+            Notification.requestPermission(function (permission) {
+                // 如果用户同意，就可以向他们发送通知
+                if (permission === "granted") {
+                    let notification = new Notification('尚未完成的日程提醒',);
+                }
+            });
+        }
+    }
+
+    layui.use('laydate', function () {
+        var laydate = layui.laydate;
+        //直接嵌套显示
+        laydate.render({
+            elem: '#calendar'
+            , position: 'static'
+            , showBottom: false
+            , type: 'datetime'
+            , format: 'yyyy-MM-dd HH:mm:ss'
+            , calendar: true
+            , theme: 'molv'
+            , mark: getMapDates()
+            , done: function (value, date, enddate) {
+                var url = "/schedule/editMore/" + value;
+                $.modal.open("日程查看", url);
+            }
+        });
+
+        function getMapDates() {
+            var map_ = new Map();
+            $.ajaxSettings.async = false;
+            $.post("/schedule/ajaxgetMap", {}, function (data) {
+                map_ = data;
+            })
+            return map_;
+        }
+
+    })
+</script>
+</body>
+</html>
